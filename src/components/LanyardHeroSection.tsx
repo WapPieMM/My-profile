@@ -59,7 +59,6 @@ const isSoftwareGl = (() => {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
     const gpu = String(gl.getParameter(param));
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
     return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
   } catch {
     return false;
@@ -428,17 +427,19 @@ function LanyardBandAndCard({
     PROFILE_DATA.heroImage
   );
 
-  // Smooth Catmull-Rom spline connecting the 4 joints
+  // Smooth Catmull-Rom spline connecting the 4 joints (initialized with non-zero span to avoid NaN bounding sphere warning)
   const [curve] = useState(() => {
     const c = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(),
-      new THREE.Vector3(),
-      new THREE.Vector3(),
-      new THREE.Vector3(),
+      new THREE.Vector3(1.65, 3.75, 0.15),
+      new THREE.Vector3(1.1, 3.95, 0.1),
+      new THREE.Vector3(0.55, 4.1, 0.05),
+      new THREE.Vector3(0, 4.2, 0),
     ]);
     c.curveType = 'chordal';
     return c;
   });
+
+  const initialStrapPoints = useMemo(() => curve.getPoints(32), [curve]);
 
   // Connect the 4 invisible physics nodes down to the card using Rope & Spherical joints
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 0.85]);
@@ -711,7 +712,7 @@ function LanyardBandAndCard({
 
       {/* Smooth MeshLine Ribbon Strap Connecting the 4 Physics Joints */}
       <mesh ref={bandRef}>
-        <meshLineGeometry />
+        <meshLineGeometry points={initialStrapPoints} />
         <meshLineMaterial
           color="white"
           depthTest={false}
@@ -942,16 +943,18 @@ export const LanyardHeroSection: React.FC<LanyardHeroSectionProps> = ({
                   />
 
                   {/* Rapier Gravity & Rope/Spherical Joint Physics Simulation */}
-                  <Physics
-                    gravity={[0, -40, 0]}
-                    timeStep={isSoftwareGl ? 1 / 30 : 1 / 60}
-                  >
-                    <LanyardBandAndCard
-                      theme={badgeTheme}
-                      triggerImpulseCount={impulseCount}
-                      dropResetCount={dropResetCount}
-                    />
-                  </Physics>
+                  <React.Suspense fallback={null}>
+                    <Physics
+                      gravity={[0, -40, 0]}
+                      timeStep={isSoftwareGl ? 1 / 30 : 1 / 60}
+                    >
+                      <LanyardBandAndCard
+                        theme={badgeTheme}
+                        triggerImpulseCount={impulseCount}
+                        dropResetCount={dropResetCount}
+                      />
+                    </Physics>
+                  </React.Suspense>
 
                   {/* Soft Grounding Contact Shadow Plane */}
                   {!isSoftwareGl && (
