@@ -1,0 +1,6 @@
+{
+  "name": "Napat Studio — Minimalist Freelance & Creative Portfolio",
+  "description": "พอร์ตโฟลิโอออนไลน์สไตล์มินิมอลสำหรับฟรีแลนซ์และ LinkedIn นำเสนอประวัติการทำงาน ความเชี่ยวชาญ แกลเลอรีผลงานแบบ Bento พร้อมระบบประเมินขอบเขตงานและติดต่อกลับที่ลื่นไหลทุกอุปกรณ์",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
